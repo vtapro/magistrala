@@ -1,0 +1,202 @@
+---
+# ============================================================
+# UI SERVICE - Magistrala Web Dashboard
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: magistrala-ui
+  namespace: magistrala
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: magistrala-ui
+  template:
+    metadata:
+      labels:
+        app: magistrala-ui
+    spec:
+      containers:
+        - name: ui
+          image: magistrala/ui:latest
+          env:
+            - name: MG_UI_PORT
+              value: "9095"
+            - name: MG_UI_HOST_URL
+              value: "https://iot.greeniq.vn"
+            - name: MG_UI_MAGISTRALA_URL
+              value: "https://iot.greeniq.vn"
+          ports:
+            - containerPort: 9095
+              name: http
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9095
+            initialDelaySeconds: 15
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 9095
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: magistrala-ui
+  namespace: magistrala
+spec:
+  selector:
+    app: magistrala-ui
+  ports:
+    - port: 9095
+      targetPort: 9095
+
+---
+# ============================================================
+# SSL CERTIFICATE
+# ============================================================
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: magistrala-tls
+  namespace: magistrala
+spec:
+  secretName: magistrala-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - iot.greeniq.vn
+
+---
+# ============================================================
+# INGRESS - Route traffic vào các services
+# ============================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: magistrala-ingress
+  namespace: magistrala
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - iot.greeniq.vn
+      secretName: magistrala-tls
+  rules:
+    - host: iot.greeniq.vn
+      http:
+        paths:
+          # UI Dashboard
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: magistrala-ui
+                port:
+                  number: 9095
+          # Users API
+          - path: /users
+            pathType: Prefix
+            backend:
+              service:
+                name: magistrala-users
+                port:
+                  number: 9002
+          # Auth API
+          - path: /auth
+            pathType: Prefix
+            backend:
+              service:
+                name: magistrala-auth
+                port:
+                  number: 8189
+          # Clients API
+          - path: /clients
+            pathType: Prefix
+            backend:
+              service:
+                name: magistrala-clients
+                port:
+                  number: 9006
+          # Channels API
+          - path: /channels
+            pathType: Prefix
+            backend:
+              service:
+                name: magistrala-channels
+                port:
+                  number: 9005
+          # Groups API
+          - path: /groups
+            pathType: Prefix
+            backend:
+              service:
+                name: magistrala-groups
+                port:
+                  number: 9004
+          # Domains API
+          - path: /domains
+            pathType: Prefix
+            backend:
+              service:
+                name: magistrala-domains
+                port:
+                  number: 9003
+          # HTTP Adapter
+          - path: /http
+            pathType: Prefix
+            backend:
+              service:
+                name: magistrala-http
+                port:
+                  number: 8008
+          # WebSocket Adapter
+          - path: /ws
+            pathType: Prefix
+            backend:
+              service:
+                name: magistrala-ws
+                port:
+                  number: 8190
+          # Bootstrap API
+          - path: /bootstrap
+            pathType: Prefix
+            backend:
+              service:
+                name: magistrala-bootstrap
+                port:
+                  number: 9013
+          # Timescale Reader (data query)
+          - path: /channels/.*/messages
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: magistrala-timescale-reader
+                port:
+                  number: 9011
+          # Journal API
+          - path: /journal
+            pathType: Prefix
+            backend:
+              service:
+                name: magistrala-journal
+                port:
+                  number: 9021

@@ -5,5 +5,8 @@
 .github
 build
 docker
+!docker/templates
+!docker/templates/**
+!docker/permission.yaml
 metrics
 scripts

@@ -1,0 +1,272 @@
+---
+# ============================================================
+# TIMESCALE WRITER - Lưu dữ liệu IoT vào TimescaleDB
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: magistrala-timescale-writer
+  namespace: magistrala
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: magistrala-timescale-writer
+  template:
+    metadata:
+      labels:
+        app: magistrala-timescale-writer
+    spec:
+      containers:
+        - name: timescale-writer
+          image: magistrala/timescale-writer:latest
+          env:
+            - name: MG_TIMESCALE_WRITER_LOG_LEVEL
+              value: "info"
+            - name: MG_TIMESCALE_WRITER_HTTP_HOST
+              value: "0.0.0.0"
+            - name: MG_TIMESCALE_WRITER_HTTP_PORT
+              value: "9012"
+            # Dùng PostgreSQL cluster riêng của Magistrala
+            - name: MG_TIMESCALE_WRITER_DB_HOST
+              value: "magistrala-postgres"
+            - name: MG_TIMESCALE_WRITER_DB_PORT
+              value: "5432"
+            - name: MG_TIMESCALE_WRITER_DB_USER
+              value: "mg_timescale"
+            - name: MG_TIMESCALE_WRITER_DB_PASS
+              value: "GreenIQ@MGTimescale2026"
+            - name: MG_TIMESCALE_WRITER_DB_NAME
+              value: "mg_timescale"
+            - name: MG_NATS_URL
+              value: "nats://magistrala-nats:4222"
+          ports:
+            - containerPort: 9012
+              name: http
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: magistrala-timescale-writer
+  namespace: magistrala
+spec:
+  selector:
+    app: magistrala-timescale-writer
+  ports:
+    - port: 9012
+      targetPort: 9012
+
+---
+# ============================================================
+# TIMESCALE READER - Đọc dữ liệu IoT từ TimescaleDB
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: magistrala-timescale-reader
+  namespace: magistrala
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: magistrala-timescale-reader
+  template:
+    metadata:
+      labels:
+        app: magistrala-timescale-reader
+    spec:
+      containers:
+        - name: timescale-reader
+          image: magistrala/timescale-reader:latest
+          env:
+            - name: MG_TIMESCALE_READER_LOG_LEVEL
+              value: "info"
+            - name: MG_TIMESCALE_READER_HTTP_HOST
+              value: "0.0.0.0"
+            - name: MG_TIMESCALE_READER_HTTP_PORT
+              value: "9011"
+            - name: MG_TIMESCALE_READER_DB_HOST
+              value: "magistrala-postgres"
+            - name: MG_TIMESCALE_READER_DB_PORT
+              value: "5432"
+            - name: MG_TIMESCALE_READER_DB_USER
+              value: "mg_timescale"
+            - name: MG_TIMESCALE_READER_DB_PASS
+              value: "GreenIQ@MGTimescale2026"
+            - name: MG_TIMESCALE_READER_DB_NAME
+              value: "mg_timescale"
+            - name: MG_AUTH_GRPC_URL
+              value: "magistrala-auth:7001"
+            - name: MG_CLIENTS_GRPC_URL
+              value: "magistrala-clients:7006"
+            - name: MG_CHANNELS_GRPC_URL
+              value: "magistrala-channels:7005"
+          ports:
+            - containerPort: 9011
+              name: http
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: magistrala-timescale-reader
+  namespace: magistrala
+spec:
+  selector:
+    app: magistrala-timescale-reader
+  ports:
+    - port: 9011
+      targetPort: 9011
+
+---
+# ============================================================
+# BOOTSTRAP SERVICE - Auto provisioning thiết bị IoT
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: magistrala-bootstrap
+  namespace: magistrala
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: magistrala-bootstrap
+  template:
+    metadata:
+      labels:
+        app: magistrala-bootstrap
+    spec:
+      containers:
+        - name: bootstrap
+          image: magistrala/bootstrap:latest
+          env:
+            - name: MG_BOOTSTRAP_LOG_LEVEL
+              value: "info"
+            - name: MG_BOOTSTRAP_HTTP_HOST
+              value: "0.0.0.0"
+            - name: MG_BOOTSTRAP_HTTP_PORT
+              value: "9013"
+            - name: MG_BOOTSTRAP_DB_HOST
+              value: "magistrala-postgres"
+            - name: MG_BOOTSTRAP_DB_PORT
+              value: "5432"
+            - name: MG_BOOTSTRAP_DB_USER
+              value: "mg_bootstrap"
+            - name: MG_BOOTSTRAP_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: magistrala-secrets
+                  key: pg-bootstrap-password
+            - name: MG_BOOTSTRAP_DB_NAME
+              value: "mg_bootstrap"
+            - name: MG_NATS_URL
+              value: "nats://magistrala-nats:4222"
+            - name: MG_AUTH_GRPC_URL
+              value: "magistrala-auth:7001"
+            - name: MG_CLIENTS_GRPC_URL
+              value: "magistrala-clients:7006"
+          ports:
+            - containerPort: 9013
+              name: http
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: magistrala-bootstrap
+  namespace: magistrala
+spec:
+  selector:
+    app: magistrala-bootstrap
+  ports:
+    - port: 9013
+      targetPort: 9013
+
+---
+# ============================================================
+# JOURNAL SERVICE - Audit log
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: magistrala-journal
+  namespace: magistrala
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: magistrala-journal
+  template:
+    metadata:
+      labels:
+        app: magistrala-journal
+    spec:
+      containers:
+        - name: journal
+          image: magistrala/journal:latest
+          env:
+            - name: MG_JOURNAL_LOG_LEVEL
+              value: "info"
+            - name: MG_JOURNAL_HTTP_HOST
+              value: "0.0.0.0"
+            - name: MG_JOURNAL_HTTP_PORT
+              value: "9021"
+            - name: MG_JOURNAL_DB_HOST
+              value: "magistrala-postgres"
+            - name: MG_JOURNAL_DB_PORT
+              value: "5432"
+            - name: MG_JOURNAL_DB_USER
+              value: "magistrala"
+            - name: MG_JOURNAL_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: magistrala-secrets
+                  key: pg-password
+            - name: MG_JOURNAL_DB_NAME
+              value: "magistrala"
+            - name: MG_NATS_URL
+              value: "nats://magistrala-nats:4222"
+            - name: MG_AUTH_GRPC_URL
+              value: "magistrala-auth:7001"
+          ports:
+            - containerPort: 9021
+              name: http
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: magistrala-journal
+  namespace: magistrala
+spec:
+  selector:
+    app: magistrala-journal
+  ports:
+    - port: 9021
+      targetPort: 9021

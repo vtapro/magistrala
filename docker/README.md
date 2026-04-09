@@ -174,3 +174,17 @@ To run tests(unit tests + API tests)
 ```bash
 make test
 ```
+
+## Kubernetes Image Build Helper
+
+For Kubernetes-oriented image builds (custom registry/tag, api/core/full profile), use:
+
+- `docker/k8s/build-images.sh`
+- `docker/k8s/build-images.ps1`
+- `docker/k8s/INVENTORY.md`
+
+Example:
+
+```bash
+REGISTRY=registry.example.com/magistrala TAG=v1.0.0 PROFILE=api PUSH=true ./docker/k8s/build-images.sh
+```

@@ -1,0 +1,565 @@
+---
+# ============================================================
+# USERS SERVICE
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: magistrala-users
+  namespace: magistrala
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: magistrala-users
+  template:
+    metadata:
+      labels:
+        app: magistrala-users
+    spec:
+      containers:
+        - name: users
+          image: magistrala/users:latest
+          env:
+            - name: MG_USERS_LOG_LEVEL
+              value: "info"
+            - name: MG_USERS_HTTP_HOST
+              value: "0.0.0.0"
+            - name: MG_USERS_HTTP_PORT
+              value: "9002"
+            - name: MG_USERS_GRPC_HOST
+              value: "0.0.0.0"
+            - name: MG_USERS_GRPC_PORT
+              value: "7002"
+            - name: MG_USERS_DB_HOST
+              value: "magistrala-postgres"
+            - name: MG_USERS_DB_PORT
+              value: "5432"
+            - name: MG_USERS_DB_USER
+              value: "mg_users"
+            - name: MG_USERS_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: magistrala-secrets
+                  key: pg-users-password
+            - name: MG_USERS_DB_NAME
+              value: "mg_users"
+            - name: MG_USERS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: magistrala-secrets
+                  key: secret-key
+            - name: MG_USERS_ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: magistrala-secrets
+                  key: admin-email
+            - name: MG_USERS_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: magistrala-secrets
+                  key: admin-password
+            - name: MG_NATS_URL
+              value: "nats://magistrala-nats:4222"
+            - name: MG_AUTH_GRPC_URL
+              value: "magistrala-auth:7001"
+          ports:
+            - containerPort: 9002
+              name: http
+            - containerPort: 7002
+              name: grpc
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9002
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9002
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: magistrala-users
+  namespace: magistrala
+spec:
+  selector:
+    app: magistrala-users
+  ports:
+    - name: http
+      port: 9002
+      targetPort: 9002
+    - name: grpc
+      port: 7002
+      targetPort: 7002
+
+---
+# ============================================================
+# AUTH SERVICE
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: magistrala-auth
+  namespace: magistrala
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: magistrala-auth
+  template:
+    metadata:
+      labels:
+        app: magistrala-auth
+    spec:
+      containers:
+        - name: auth
+          image: magistrala/auth:latest
+          env:
+            - name: MG_AUTH_LOG_LEVEL
+              value: "info"
+            - name: MG_AUTH_HTTP_HOST
+              value: "0.0.0.0"
+            - name: MG_AUTH_HTTP_PORT
+              value: "8189"
+            - name: MG_AUTH_GRPC_HOST
+              value: "0.0.0.0"
+            - name: MG_AUTH_GRPC_PORT
+              value: "7001"
+            - name: MG_AUTH_DB_HOST
+              value: "magistrala-postgres"
+            - name: MG_AUTH_DB_PORT
+              value: "5432"
+            - name: MG_AUTH_DB_USER
+              value: "mg_auth"
+            - name: MG_AUTH_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: magistrala-secrets
+                  key: pg-auth-password
+            - name: MG_AUTH_DB_NAME
+              value: "mg_auth"
+            - name: MG_AUTH_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: magistrala-secrets
+                  key: secret-key
+            - name: MG_NATS_URL
+              value: "nats://magistrala-nats:4222"
+          ports:
+            - containerPort: 8189
+              name: http
+            - containerPort: 7001
+              name: grpc
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8189
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8189
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: magistrala-auth
+  namespace: magistrala
+spec:
+  selector:
+    app: magistrala-auth
+  ports:
+    - name: http
+      port: 8189
+      targetPort: 8189
+    - name: grpc
+      port: 7001
+      targetPort: 7001
+
+---
+# ============================================================
+# CLIENTS SERVICE
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: magistrala-clients
+  namespace: magistrala
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: magistrala-clients
+  template:
+    metadata:
+      labels:
+        app: magistrala-clients
+    spec:
+      containers:
+        - name: clients
+          image: magistrala/clients:latest
+          env:
+            - name: MG_CLIENTS_LOG_LEVEL
+              value: "info"
+            - name: MG_CLIENTS_HTTP_HOST
+              value: "0.0.0.0"
+            - name: MG_CLIENTS_HTTP_PORT
+              value: "9006"
+            - name: MG_CLIENTS_GRPC_HOST
+              value: "0.0.0.0"
+            - name: MG_CLIENTS_GRPC_PORT
+              value: "7006"
+            - name: MG_CLIENTS_DB_HOST
+              value: "magistrala-postgres"
+            - name: MG_CLIENTS_DB_PORT
+              value: "5432"
+            - name: MG_CLIENTS_DB_USER
+              value: "mg_clients"
+            - name: MG_CLIENTS_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: magistrala-secrets
+                  key: pg-clients-password
+            - name: MG_CLIENTS_DB_NAME
+              value: "mg_clients"
+            - name: MG_NATS_URL
+              value: "nats://magistrala-nats:4222"
+            - name: MG_AUTH_GRPC_URL
+              value: "magistrala-auth:7001"
+          ports:
+            - containerPort: 9006
+              name: http
+            - containerPort: 7006
+              name: grpc
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9006
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9006
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: magistrala-clients
+  namespace: magistrala
+spec:
+  selector:
+    app: magistrala-clients
+  ports:
+    - name: http
+      port: 9006
+      targetPort: 9006
+    - name: grpc
+      port: 7006
+      targetPort: 7006
+
+---
+# ============================================================
+# CHANNELS SERVICE
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: magistrala-channels
+  namespace: magistrala
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: magistrala-channels
+  template:
+    metadata:
+      labels:
+        app: magistrala-channels
+    spec:
+      containers:
+        - name: channels
+          image: magistrala/channels:latest
+          env:
+            - name: MG_CHANNELS_LOG_LEVEL
+              value: "info"
+            - name: MG_CHANNELS_HTTP_HOST
+              value: "0.0.0.0"
+            - name: MG_CHANNELS_HTTP_PORT
+              value: "9005"
+            - name: MG_CHANNELS_GRPC_HOST
+              value: "0.0.0.0"
+            - name: MG_CHANNELS_GRPC_PORT
+              value: "7005"
+            - name: MG_CHANNELS_DB_HOST
+              value: "magistrala-postgres"
+            - name: MG_CHANNELS_DB_PORT
+              value: "5432"
+            - name: MG_CHANNELS_DB_USER
+              value: "mg_channels"
+            - name: MG_CHANNELS_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: magistrala-secrets
+                  key: pg-channels-password
+            - name: MG_CHANNELS_DB_NAME
+              value: "mg_channels"
+            - name: MG_NATS_URL
+              value: "nats://magistrala-nats:4222"
+            - name: MG_AUTH_GRPC_URL
+              value: "magistrala-auth:7001"
+            - name: MG_CLIENTS_GRPC_URL
+              value: "magistrala-clients:7006"
+          ports:
+            - containerPort: 9005
+              name: http
+            - containerPort: 7005
+              name: grpc
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9005
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9005
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: magistrala-channels
+  namespace: magistrala
+spec:
+  selector:
+    app: magistrala-channels
+  ports:
+    - name: http
+      port: 9005
+      targetPort: 9005
+    - name: grpc
+      port: 7005
+      targetPort: 7005
+
+---
+# ============================================================
+# GROUPS SERVICE
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: magistrala-groups
+  namespace: magistrala
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: magistrala-groups
+  template:
+    metadata:
+      labels:
+        app: magistrala-groups
+    spec:
+      containers:
+        - name: groups
+          image: magistrala/groups:latest
+          env:
+            - name: MG_GROUPS_LOG_LEVEL
+              value: "info"
+            - name: MG_GROUPS_HTTP_HOST
+              value: "0.0.0.0"
+            - name: MG_GROUPS_HTTP_PORT
+              value: "9004"
+            - name: MG_GROUPS_GRPC_HOST
+              value: "0.0.0.0"
+            - name: MG_GROUPS_GRPC_PORT
+              value: "7004"
+            - name: MG_GROUPS_DB_HOST
+              value: "magistrala-postgres"
+            - name: MG_GROUPS_DB_PORT
+              value: "5432"
+            - name: MG_GROUPS_DB_USER
+              value: "mg_groups"
+            - name: MG_GROUPS_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: magistrala-secrets
+                  key: pg-groups-password
+            - name: MG_GROUPS_DB_NAME
+              value: "mg_groups"
+            - name: MG_NATS_URL
+              value: "nats://magistrala-nats:4222"
+            - name: MG_AUTH_GRPC_URL
+              value: "magistrala-auth:7001"
+          ports:
+            - containerPort: 9004
+              name: http
+            - containerPort: 7004
+              name: grpc
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9004
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9004
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: magistrala-groups
+  namespace: magistrala
+spec:
+  selector:
+    app: magistrala-groups
+  ports:
+    - name: http
+      port: 9004
+      targetPort: 9004
+    - name: grpc
+      port: 7004
+      targetPort: 7004
+
+---
+# ============================================================
+# DOMAINS SERVICE
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: magistrala-domains
+  namespace: magistrala
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: magistrala-domains
+  template:
+    metadata:
+      labels:
+        app: magistrala-domains
+    spec:
+      containers:
+        - name: domains
+          image: magistrala/domains:latest
+          env:
+            - name: MG_DOMAINS_LOG_LEVEL
+              value: "info"
+            - name: MG_DOMAINS_HTTP_HOST
+              value: "0.0.0.0"
+            - name: MG_DOMAINS_HTTP_PORT
+              value: "9003"
+            - name: MG_DOMAINS_GRPC_HOST
+              value: "0.0.0.0"
+            - name: MG_DOMAINS_GRPC_PORT
+              value: "7003"
+            - name: MG_DOMAINS_DB_HOST
+              value: "magistrala-postgres"
+            - name: MG_DOMAINS_DB_PORT
+              value: "5432"
+            - name: MG_DOMAINS_DB_USER
+              value: "mg_domains"
+            - name: MG_DOMAINS_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: magistrala-secrets
+                  key: pg-domains-password
+            - name: MG_DOMAINS_DB_NAME
+              value: "mg_domains"
+            - name: MG_NATS_URL
+              value: "nats://magistrala-nats:4222"
+            - name: MG_AUTH_GRPC_URL
+              value: "magistrala-auth:7001"
+          ports:
+            - containerPort: 9003
+              name: http
+            - containerPort: 7003
+              name: grpc
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9003
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9003
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: magistrala-domains
+  namespace: magistrala
+spec:
+  selector:
+    app: magistrala-domains
+  ports:
+    - name: http
+      port: 9003
+      targetPort: 9003
+    - name: grpc
+      port: 7003
+      targetPort: 7003

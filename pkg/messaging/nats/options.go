@@ -17,7 +17,7 @@ var (
 
 	jsStreamConfig = jetstream.StreamConfig{
 		Name:              "m",
-		Description:       "Magistrala stream for sending and receiving messages in between Magistrala channels",
+		Description:       "SuperMQ stream for sending and receiving messages in between SuperMQ channels",
 		Subjects:          []string{"m.>"},
 		Retention:         jetstream.LimitsPolicy,
 		MaxMsgsPerSubject: 1e6,

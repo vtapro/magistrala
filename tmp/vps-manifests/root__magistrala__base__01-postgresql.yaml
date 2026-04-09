@@ -1,0 +1,133 @@
+---
+# PostgreSQL cho Magistrala - instance riêng, không dùng chung với greeniq-ha
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: magistrala-pg-init
+  namespace: magistrala
+data:
+  init.sql: |
+    CREATE USER magistrala WITH PASSWORD 'GreenIQ@MG2026';
+    CREATE DATABASE magistrala OWNER magistrala;
+
+    CREATE USER mg_users WITH PASSWORD 'GreenIQ@MGUsers2026';
+    CREATE DATABASE mg_users OWNER mg_users;
+    \c mg_users
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+    CREATE USER mg_clients WITH PASSWORD 'GreenIQ@MGClients2026';
+    CREATE DATABASE mg_clients OWNER mg_clients;
+    \c mg_clients
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+    CREATE USER mg_channels WITH PASSWORD 'GreenIQ@MGChannels2026';
+    CREATE DATABASE mg_channels OWNER mg_channels;
+    \c mg_channels
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+    CREATE USER mg_groups WITH PASSWORD 'GreenIQ@MGGroups2026';
+    CREATE DATABASE mg_groups OWNER mg_groups;
+    \c mg_groups
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+    CREATE USER mg_auth WITH PASSWORD 'GreenIQ@MGAuth2026';
+    CREATE DATABASE mg_auth OWNER mg_auth;
+    \c mg_auth
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+    CREATE USER mg_domains WITH PASSWORD 'GreenIQ@MGDomains2026';
+    CREATE DATABASE mg_domains OWNER mg_domains;
+    \c mg_domains
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+    CREATE USER mg_bootstrap WITH PASSWORD 'GreenIQ@MGBootstrap2026';
+    CREATE DATABASE mg_bootstrap OWNER mg_bootstrap;
+    \c mg_bootstrap
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+    CREATE USER mg_timescale WITH PASSWORD 'GreenIQ@MGTimescale2026';
+    CREATE DATABASE mg_timescale OWNER mg_timescale;
+    \c mg_timescale
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: magistrala-postgres
+  namespace: magistrala
+spec:
+  serviceName: magistrala-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: magistrala-postgres
+  template:
+    metadata:
+      labels:
+        app: magistrala-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          env:
+            - name: POSTGRES_DB
+              value: magistrala
+            - name: POSTGRES_USER
+              value: magistrala
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: magistrala-secrets
+                  key: pg-password
+          ports:
+            - containerPort: 5432
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+            - name: init-sql
+              mountPath: /docker-entrypoint-initdb.d
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "magistrala"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "magistrala"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: init-sql
+          configMap:
+            name: magistrala-pg-init
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: longhorn
+        resources:
+          requests:
+            storage: 20Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: magistrala-postgres
+  namespace: magistrala
+spec:
+  selector:
+    app: magistrala-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+  clusterIP: None

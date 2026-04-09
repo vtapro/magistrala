@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"net/url"
 	"os"
+	"time"
 
 	chclient "github.com/absmach/callhome/pkg/client"
 	"github.com/absmach/magistrala"
@@ -21,6 +22,7 @@ import (
 	"github.com/absmach/magistrala/consumers/writers/timescale"
 	mglog "github.com/absmach/magistrala/logger"
 	jaegerclient "github.com/absmach/magistrala/pkg/jaeger"
+	"github.com/absmach/magistrala/pkg/messaging"
 	brokerstracing "github.com/absmach/magistrala/pkg/messaging/brokers/tracing"
 	pgclient "github.com/absmach/magistrala/pkg/postgres"
 	"github.com/absmach/magistrala/pkg/prometheus"
@@ -44,6 +46,8 @@ type config struct {
 	LogLevel      string  `env:"MG_TIMESCALE_WRITER_LOG_LEVEL"     envDefault:"info"`
 	ConfigPath    string  `env:"MG_TIMESCALE_WRITER_CONFIG_PATH"   envDefault:"/config.toml"`
 	BrokerURL     string  `env:"MG_MESSAGE_BROKER_URL"            envDefault:"nats://localhost:4222"`
+	BrokerRetry   int     `env:"MG_MESSAGE_BROKER_RETRY_COUNT"    envDefault:"30"`
+	BrokerBackoff int     `env:"MG_MESSAGE_BROKER_RETRY_BACKOFF"  envDefault:"2"`
 	JaegerURL     url.URL `env:"MG_JAEGER_URL"                    envDefault:"http://localhost:4318/v1/traces"`
 	SendTelemetry bool    `env:"MG_SEND_TELEMETRY"                envDefault:"true"`
 	InstanceID    string  `env:"MG_TIMESCALE_WRITER_INSTANCE_ID"   envDefault:""`
@@ -112,9 +116,9 @@ func main() {
 	repo := newService(db, logger)
 	repo = consumertracing.NewBlocking(tracer, repo, httpServerConfig)
 
-	pubSub, err := brokers.NewPubSub(ctx, cfg.BrokerURL, logger)
+	pubSub, err := connectPubSub(ctx, cfg, logger)
 	if err != nil {
-		logger.Error(fmt.Sprintf("failed to connect to message broker: %s", err))
+		logger.Error(fmt.Sprintf("failed to connect to message broker after retries: %s", err))
 		exitCode = 1
 		return
 	}
@@ -153,4 +157,33 @@ func newService(db *sqlx.DB, logger *slog.Logger) consumers.BlockingConsumer {
 	counter, latency := prometheus.MakeMetrics("timescale", "message_writer")
 	svc = httpapi.MetricsMiddleware(svc, counter, latency)
 	return svc
+}
+
+func connectPubSub(ctx context.Context, cfg config, logger *slog.Logger) (messaging.PubSub, error) {
+	retries := cfg.BrokerRetry
+	if retries < 1 {
+		retries = 1
+	}
+	backoff := time.Duration(cfg.BrokerBackoff) * time.Second
+	if backoff < time.Second {
+		backoff = time.Second
+	}
+
+	var err error
+	for attempt := 1; attempt <= retries; attempt++ {
+		pubSub, connErr := brokers.NewPubSub(ctx, cfg.BrokerURL, logger)
+		if connErr == nil {
+			if attempt > 1 {
+				logger.Info(fmt.Sprintf("connected to message broker on attempt %d with URL %s", attempt, cfg.BrokerURL))
+			}
+			return pubSub, nil
+		}
+		err = connErr
+		logger.Warn(fmt.Sprintf("message broker connection attempt %d/%d failed (url=%s): %s", attempt, retries, cfg.BrokerURL, connErr))
+		if attempt < retries {
+			time.Sleep(backoff)
+		}
+	}
+
+	return nil, err
 }

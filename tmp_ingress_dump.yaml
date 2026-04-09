@@ -1,0 +1,611 @@
+apiVersion: v1
+items:
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"cert-manager.io/cluster-issuer":"letsencrypt-prod","nginx.ingress.kubernetes.io/use-regex":"true"},"name":"magistrala-addons-ingress","namespace":"magistrala"},"spec":{"ingressClassName":"nginx","rules":[{"host":"hub.greeniq.vn","http":{"paths":[{"backend":{"service":{"name":"magistrala-bootstrap","port":{"number":9013}}},"path":"/domains/[^/]+/clients/configs(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-bootstrap","port":{"number":9013}}},"path":"/[^/]+/clients/configs(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-bootstrap","port":{"number":9013}}},"path":"/clients/bootstrap(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-timescale-reader","port":{"number":9011}}},"path":"/domains/[^/]+/channels/[^/]+/messages(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-timescale-reader","port":{"number":9011}}},"path":"/[^/]+/channels/[^/]+/messages(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-journal","port":{"number":9021}}},"path":"/domains/[^/]+/journal(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-journal","port":{"number":9021}}},"path":"/[^/]+/journal(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-re","port":{"number":9008}}},"path":"/domains/[^/]+/rules(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-re","port":{"number":9008}}},"path":"/[^/]+/rules(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-reports","port":{"number":9017}}},"path":"/domains/[^/]+/reports(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-reports","port":{"number":9017}}},"path":"/[^/]+/reports(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-alarms","port":{"number":8050}}},"path":"/domains/[^/]+/alarms(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-alarms","port":{"number":8050}}},"path":"/[^/]+/alarms(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-certs","port":{"number":9019}}},"path":"/domains/[^/]+/certs(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-certs","port":{"number":9019}}},"path":"/[^/]+/certs(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-certs","port":{"number":9019}}},"path":"/certs(/|$)(.*)","pathType":"ImplementationSpecific"}]}}],"tls":[{"hosts":["hub.greeniq.vn"],"secretName":"hub-greeniq-vn-tls"}]}}
+      nginx.ingress.kubernetes.io/use-regex: "true"
+    creationTimestamp: "2026-04-09T03:27:52Z"
+    generation: 2
+    name: magistrala-addons-ingress
+    namespace: magistrala
+    resourceVersion: "12925046"
+    uid: 6e0a3099-82bd-4f7b-9447-05b1fe367e9a
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: hub.greeniq.vn
+      http:
+        paths:
+        - backend:
+            service:
+              name: magistrala-bootstrap
+              port:
+                number: 9013
+          path: /domains/[^/]+/clients/configs(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-bootstrap
+              port:
+                number: 9013
+          path: /[^/]+/clients/configs(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-bootstrap
+              port:
+                number: 9013
+          path: /clients/bootstrap(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-timescale-reader
+              port:
+                number: 9011
+          path: /domains/[^/]+/channels/[^/]+/messages(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-timescale-reader
+              port:
+                number: 9011
+          path: /[^/]+/channels/[^/]+/messages(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-journal
+              port:
+                number: 9021
+          path: /domains/[^/]+/journal(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-journal
+              port:
+                number: 9021
+          path: /[^/]+/journal(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-re
+              port:
+                number: 9008
+          path: /domains/[^/]+/rules(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-re
+              port:
+                number: 9008
+          path: /[^/]+/rules(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-reports
+              port:
+                number: 9017
+          path: /domains/[^/]+/reports(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-reports
+              port:
+                number: 9017
+          path: /[^/]+/reports(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-alarms
+              port:
+                number: 8050
+          path: /domains/[^/]+/alarms(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-alarms
+              port:
+                number: 8050
+          path: /[^/]+/alarms(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-certs
+              port:
+                number: 9019
+          path: /domains/[^/]+/certs(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-certs
+              port:
+                number: 9019
+          path: /[^/]+/certs(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-certs
+              port:
+                number: 9019
+          path: /certs(/|$)(.*)
+          pathType: ImplementationSpecific
+    tls:
+    - hosts:
+      - hub.greeniq.vn
+      secretName: hub-greeniq-vn-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 155.117.44.160
+      - ip: 185.217.125.138
+      - ip: 75.119.140.171
+      - ip: 89.117.54.100
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"nginx.ingress.kubernetes.io/rewrite-target":"/v1/channels$1$2","nginx.ingress.kubernetes.io/use-regex":"true"},"name":"magistrala-channels-v1-ingress","namespace":"magistrala"},"spec":{"ingressClassName":"nginx","rules":[{"host":"hub.greeniq.vn","http":{"paths":[{"backend":{"service":{"name":"magistrala-channels","port":{"number":9005}}},"path":"/channels(/|$)(.*)","pathType":"ImplementationSpecific"}]}}]}}
+      nginx.ingress.kubernetes.io/rewrite-target: /v1/channels$1$2
+      nginx.ingress.kubernetes.io/use-regex: "true"
+    creationTimestamp: "2026-04-07T08:50:46Z"
+    generation: 2
+    name: magistrala-channels-v1-ingress
+    namespace: magistrala
+    resourceVersion: "12925010"
+    uid: 570cbb80-f140-4063-a68b-1669a11b1ec0
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: hub.greeniq.vn
+      http:
+        paths:
+        - backend:
+            service:
+              name: magistrala-channels
+              port:
+                number: 9005
+          path: /channels(/|$)(.*)
+          pathType: ImplementationSpecific
+    tls:
+    - hosts:
+      - hub.greeniq.vn
+      secretName: hub-greeniq-vn-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 155.117.44.160
+      - ip: 185.217.125.138
+      - ip: 75.119.140.171
+      - ip: 89.117.54.100
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"nginx.ingress.kubernetes.io/rewrite-target":"/v1/clients$1$2","nginx.ingress.kubernetes.io/use-regex":"true"},"name":"magistrala-clients-v1-ingress","namespace":"magistrala"},"spec":{"ingressClassName":"nginx","rules":[{"host":"hub.greeniq.vn","http":{"paths":[{"backend":{"service":{"name":"magistrala-clients","port":{"number":9006}}},"path":"/clients(/|$)(.*)","pathType":"ImplementationSpecific"}]}}]}}
+      nginx.ingress.kubernetes.io/rewrite-target: /v1/clients$1$2
+      nginx.ingress.kubernetes.io/use-regex: "true"
+    creationTimestamp: "2026-04-07T08:50:45Z"
+    generation: 2
+    name: magistrala-clients-v1-ingress
+    namespace: magistrala
+    resourceVersion: "12925016"
+    uid: 277fa1e5-0f1c-4297-8db7-775c635f4bad
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: hub.greeniq.vn
+      http:
+        paths:
+        - backend:
+            service:
+              name: magistrala-clients
+              port:
+                number: 9006
+          path: /clients(/|$)(.*)
+          pathType: ImplementationSpecific
+    tls:
+    - hosts:
+      - hub.greeniq.vn
+      secretName: hub-greeniq-vn-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 155.117.44.160
+      - ip: 185.217.125.138
+      - ip: 75.119.140.171
+      - ip: 89.117.54.100
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"nginx.ingress.kubernetes.io/use-regex":"true"},"name":"magistrala-domain-auth-ingress","namespace":"magistrala"},"spec":{"ingressClassName":"nginx","rules":[{"host":"hub.greeniq.vn","http":{"paths":[{"backend":{"service":{"name":"magistrala-auth","port":{"number":8189}}},"path":"/domains/([^/]+)/permissions(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-auth","port":{"number":8189}}},"path":"/domains/([^/]+)/users/(assign|unassign)(/|$)(.*)","pathType":"ImplementationSpecific"}]}}]}}
+      nginx.ingress.kubernetes.io/use-regex: "true"
+    creationTimestamp: "2026-04-07T10:41:43Z"
+    generation: 3
+    name: magistrala-domain-auth-ingress
+    namespace: magistrala
+    resourceVersion: "12925040"
+    uid: 3f7aa4ca-1553-4ed5-95de-b0b7d6dc79e7
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: hub.greeniq.vn
+      http:
+        paths:
+        - backend:
+            service:
+              name: magistrala-auth
+              port:
+                number: 8189
+          path: /domains/([^/]+)/permissions(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-auth
+              port:
+                number: 8189
+          path: /domains/([^/]+)/users/(assign|unassign)(/|$)(.*)
+          pathType: ImplementationSpecific
+    tls:
+    - hosts:
+      - hub.greeniq.vn
+      secretName: hub-greeniq-vn-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 155.117.44.160
+      - ip: 185.217.125.138
+      - ip: 75.119.140.171
+      - ip: 89.117.54.100
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"nginx.ingress.kubernetes.io/rewrite-target":"/v1$1","nginx.ingress.kubernetes.io/use-regex":"true"},"name":"magistrala-domain-resources-ingress","namespace":"magistrala"},"spec":{"ingressClassName":"nginx","rules":[{"host":"hub.greeniq.vn","http":{"paths":[{"backend":{"service":{"name":"magistrala-clients","port":{"number":9006}}},"path":"/domains/[^/]+(/clients.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-channels","port":{"number":9005}}},"path":"/domains/[^/]+(/channels.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-groups","port":{"number":9004}}},"path":"/domains/[^/]+(/groups.*)","pathType":"ImplementationSpecific"}]}}]}}
+      nginx.ingress.kubernetes.io/rewrite-target: /v1$1
+      nginx.ingress.kubernetes.io/use-regex: "true"
+    creationTimestamp: "2026-04-07T09:35:16Z"
+    generation: 2
+    name: magistrala-domain-resources-ingress
+    namespace: magistrala
+    resourceVersion: "12924991"
+    uid: 90ec3910-70f9-4f9c-8ad9-a7fabe09be2e
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: hub.greeniq.vn
+      http:
+        paths:
+        - backend:
+            service:
+              name: magistrala-clients
+              port:
+                number: 9006
+          path: /domains/[^/]+(/clients.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-channels
+              port:
+                number: 9005
+          path: /domains/[^/]+(/channels.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-groups
+              port:
+                number: 9004
+          path: /domains/[^/]+(/groups.*)
+          pathType: ImplementationSpecific
+    tls:
+    - hosts:
+      - hub.greeniq.vn
+      secretName: hub-greeniq-vn-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 155.117.44.160
+      - ip: 185.217.125.138
+      - ip: 75.119.140.171
+      - ip: 89.117.54.100
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"nginx.ingress.kubernetes.io/use-regex":"true"},"name":"magistrala-domain-users-list-ingress","namespace":"magistrala"},"spec":{"ingressClassName":"nginx","rules":[{"host":"hub.greeniq.vn","http":{"paths":[{"backend":{"service":{"name":"magistrala-users","port":{"number":9002}}},"path":"/domains/[^/]+/users$","pathType":"ImplementationSpecific"}]}}]}}
+      nginx.ingress.kubernetes.io/use-regex: "true"
+    creationTimestamp: "2026-04-07T10:37:51Z"
+    generation: 2
+    name: magistrala-domain-users-list-ingress
+    namespace: magistrala
+    resourceVersion: "12925023"
+    uid: 9f17202f-bdd4-488a-a0ae-774adc161452
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: hub.greeniq.vn
+      http:
+        paths:
+        - backend:
+            service:
+              name: magistrala-users
+              port:
+                number: 9002
+          path: /domains/[^/]+/users$
+          pathType: ImplementationSpecific
+    tls:
+    - hosts:
+      - hub.greeniq.vn
+      secretName: hub-greeniq-vn-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 155.117.44.160
+      - ip: 185.217.125.138
+      - ip: 75.119.140.171
+      - ip: 89.117.54.100
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{},"name":"magistrala-grafana-ingress","namespace":"magistrala"},"spec":{"ingressClassName":"nginx","rules":[{"host":"hub.greeniq.vn","http":{"paths":[{"backend":{"service":{"name":"magistrala-grafana","port":{"number":3000}}},"path":"/grafana","pathType":"Prefix"}]}}]}}
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    creationTimestamp: "2026-04-07T08:40:03Z"
+    generation: 4
+    name: magistrala-grafana-ingress
+    namespace: magistrala
+    resourceVersion: "12925029"
+    uid: 9fa958bc-c2a3-4599-827d-5609de527daa
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: hub.greeniq.vn
+      http:
+        paths:
+        - backend:
+            service:
+              name: magistrala-grafana
+              port:
+                number: 3000
+          path: /grafana
+          pathType: Prefix
+    tls:
+    - hosts:
+      - hub.greeniq.vn
+      secretName: hub-greeniq-vn-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 155.117.44.160
+      - ip: 185.217.125.138
+      - ip: 75.119.140.171
+      - ip: 89.117.54.100
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"nginx.ingress.kubernetes.io/rewrite-target":"/v1/groups$1$2","nginx.ingress.kubernetes.io/use-regex":"true"},"name":"magistrala-groups-v1-ingress","namespace":"magistrala"},"spec":{"ingressClassName":"nginx","rules":[{"host":"hub.greeniq.vn","http":{"paths":[{"backend":{"service":{"name":"magistrala-groups","port":{"number":9004}}},"path":"/groups(/|$)(.*)","pathType":"ImplementationSpecific"}]}}]}}
+      nginx.ingress.kubernetes.io/rewrite-target: /v1/groups$1$2
+      nginx.ingress.kubernetes.io/use-regex: "true"
+    creationTimestamp: "2026-04-07T08:50:46Z"
+    generation: 2
+    name: magistrala-groups-v1-ingress
+    namespace: magistrala
+    resourceVersion: "12924998"
+    uid: e64fcf0c-74e9-4ec2-a6bc-23f721c639f9
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: hub.greeniq.vn
+      http:
+        paths:
+        - backend:
+            service:
+              name: magistrala-groups
+              port:
+                number: 9004
+          path: /groups(/|$)(.*)
+          pathType: ImplementationSpecific
+    tls:
+    - hosts:
+      - hub.greeniq.vn
+      secretName: hub-greeniq-vn-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 155.117.44.160
+      - ip: 185.217.125.138
+      - ip: 75.119.140.171
+      - ip: 89.117.54.100
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"nginx.ingress.kubernetes.io/use-regex":"true"},"name":"magistrala-hub","namespace":"magistrala"},"spec":{"ingressClassName":"nginx","rules":[{"host":"hub.greeniq.vn","http":{"paths":[{"backend":{"service":{"name":"magistrala-users","port":{"number":9002}}},"path":"/users(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-auth","port":{"number":8189}}},"path":"/auth(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-domains","port":{"number":9003}}},"path":"/domains(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-clients","port":{"number":9006}}},"path":"/clients(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-channels","port":{"number":9005}}},"path":"/channels(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-groups","port":{"number":9004}}},"path":"/groups(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-http","port":{"number":8008}}},"path":"/http(/|$)(.*)","pathType":"ImplementationSpecific"},{"backend":{"service":{"name":"magistrala-ws","port":{"number":8190}}},"path":"/ws(/|$)(.*)","pathType":"ImplementationSpecific"}]}}]}}
+      nginx.ingress.kubernetes.io/use-regex: '"true"'
+    creationTimestamp: "2026-04-07T08:16:28Z"
+    generation: 5
+    name: magistrala-hub
+    namespace: magistrala
+    resourceVersion: "12925034"
+    uid: 3bf5343e-fe3d-4fba-864a-ee3dceec03b8
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: hub.greeniq.vn
+      http:
+        paths:
+        - backend:
+            service:
+              name: magistrala-users
+              port:
+                number: 9002
+          path: /users(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-auth
+              port:
+                number: 8189
+          path: /auth(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-domains
+              port:
+                number: 9003
+          path: /domains(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-http
+              port:
+                number: 8008
+          path: /http(/|$)(.*)
+          pathType: ImplementationSpecific
+        - backend:
+            service:
+              name: magistrala-ws
+              port:
+                number: 8190
+          path: /ws(/|$)(.*)
+          pathType: ImplementationSpecific
+    tls:
+    - hosts:
+      - hub.greeniq.vn
+      secretName: hub-greeniq-vn-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 155.117.44.160
+      - ip: 185.217.125.138
+      - ip: 75.119.140.171
+      - ip: 89.117.54.100
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"nginx.ingress.kubernetes.io/use-regex":"true"},"name":"magistrala-notifiers-ingress","namespace":"magistrala"},"spec":{"ingressClassName":"nginx","rules":[{"host":"hub.greeniq.vn","http":{"paths":[{"backend":{"service":{"name":"magistrala-notifiers-api","port":{"number":9014}}},"path":"/subscriptions(/|$)(.*)","pathType":"ImplementationSpecific"}]}}],"tls":[{"hosts":["hub.greeniq.vn"],"secretName":"hub-greeniq-vn-tls"}]}}
+      nginx.ingress.kubernetes.io/use-regex: "true"
+    creationTimestamp: "2026-04-09T03:48:16Z"
+    generation: 1
+    name: magistrala-notifiers-ingress
+    namespace: magistrala
+    resourceVersion: "12925052"
+    uid: a0fe9741-cee7-4ab4-beb8-acb20bfdc530
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: hub.greeniq.vn
+      http:
+        paths:
+        - backend:
+            service:
+              name: magistrala-notifiers-api
+              port:
+                number: 9014
+          path: /subscriptions(/|$)(.*)
+          pathType: ImplementationSpecific
+    tls:
+    - hosts:
+      - hub.greeniq.vn
+      secretName: hub-greeniq-vn-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 155.117.44.160
+      - ip: 185.217.125.138
+      - ip: 75.119.140.171
+      - ip: 89.117.54.100
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"cert-manager.io/cluster-issuer":"letsencrypt-prod","nginx.ingress.kubernetes.io/force-ssl-redirect":"true"},"name":"magistrala-ui-ingress","namespace":"magistrala"},"spec":{"ingressClassName":"nginx","rules":[{"host":"hub.greeniq.vn","http":{"paths":[{"backend":{"service":{"name":"magistrala-ui","port":{"number":9095}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["hub.greeniq.vn"],"secretName":"hub-greeniq-vn-tls"}]}}
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    creationTimestamp: "2026-04-07T14:48:09Z"
+    generation: 2
+    name: magistrala-ui-ingress
+    namespace: magistrala
+    resourceVersion: "12925057"
+    uid: fde4946f-6e69-44f4-9a1f-2cf6a0c686c4
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: app.greeniq.vn
+      http:
+        paths:
+        - backend:
+            service:
+              name: magistrala-ui
+              port:
+                number: 9095
+          path: /
+          pathType: Prefix
+    tls:
+    - hosts:
+      - app.greeniq.vn
+      secretName: app-greeniq-vn-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 155.117.44.160
+      - ip: 185.217.125.138
+      - ip: 75.119.140.171
+      - ip: 89.117.54.100
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"nginx.ingress.kubernetes.io/rewrite-target":"/clients$1$2","nginx.ingress.kubernetes.io/use-regex":"true"},"name":"magistrala-ui-things-compat","namespace":"magistrala"},"spec":{"ingressClassName":"nginx","rules":[{"host":"hub.greeniq.vn","http":{"paths":[{"backend":{"service":{"name":"magistrala-clients","port":{"number":9006}}},"path":"/things(/|$)(.*)","pathType":"ImplementationSpecific"}]}}]}}
+      nginx.ingress.kubernetes.io/rewrite-target: /v1/clients$1$2
+      nginx.ingress.kubernetes.io/use-regex: "true"
+    creationTimestamp: "2026-04-07T08:16:30Z"
+    generation: 2
+    name: magistrala-ui-things-compat
+    namespace: magistrala
+    resourceVersion: "12925003"
+    uid: 32ff77bc-177b-4e7f-8791-08324ac3eab7
+  spec:
+    ingressClassName: nginx
+    rules:
+    - host: hub.greeniq.vn
+      http:
+        paths:
+        - backend:
+            service:
+              name: magistrala-clients
+              port:
+                number: 9006
+          path: /things(/|$)(.*)
+          pathType: ImplementationSpecific
+    tls:
+    - hosts:
+      - hub.greeniq.vn
+      secretName: hub-greeniq-vn-tls
+  status:
+    loadBalancer:
+      ingress:
+      - ip: 155.117.44.160
+      - ip: 185.217.125.138
+      - ip: 75.119.140.171
+      - ip: 89.117.54.100
+kind: List
+metadata:
+  resourceVersion: ""

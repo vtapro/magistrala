@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	chclient "github.com/absmach/callhome/pkg/client"
@@ -413,7 +414,9 @@ func createAdminPolicy(ctx context.Context, userID string, policyService policie
 		Object:      policies.MagistralaObject,
 		ObjectType:  policies.PlatformType,
 	})
-	if err != nil && !errors.Contains(err, repoerr.ErrConflict) {
+	if err != nil &&
+		!errors.Contains(err, repoerr.ErrConflict) &&
+		!strings.Contains(strings.ToLower(err.Error()), "already exist") {
 		return err
 	}
 	return nil

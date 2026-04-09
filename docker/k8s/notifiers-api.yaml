@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: magistrala-notifiers-api
+  namespace: magistrala
+  labels:
+    app: magistrala-notifiers-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: magistrala-notifiers-api
+  template:
+    metadata:
+      labels:
+        app: magistrala-notifiers-api
+    spec:
+      containers:
+        - name: notifiers-api
+          image: vtaboss/notifiers-api:v0.19.1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9014
+              name: http
+          env:
+            - name: MG_NOTIFIERS_LOG_LEVEL
+              value: "info"
+            - name: MG_NOTIFIERS_HTTP_HOST
+              value: "0.0.0.0"
+            - name: MG_NOTIFIERS_HTTP_PORT
+              value: "9014"
+            - name: MG_NOTIFIERS_DB_HOST
+              value: "magistrala-postgres-ha-pgpool"
+            - name: MG_NOTIFIERS_DB_PORT
+              value: "5432"
+            - name: MG_NOTIFIERS_DB_USER
+              value: "supermq"
+            - name: MG_NOTIFIERS_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: magistrala-runtime-secrets
+                  key: magistrala-reports__MG_REPORTS_DB_PASS
+            - name: MG_NOTIFIERS_DB_NAME
+              value: "repo"
+            - name: MG_NOTIFIERS_DB_SSL_MODE
+              value: "disable"
+            - name: MG_AUTH_GRPC_URL
+              value: "magistrala-auth:7001"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 8
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: magistrala-notifiers-api
+  namespace: magistrala
+  labels:
+    app: magistrala-notifiers-api
+spec:
+  selector:
+    app: magistrala-notifiers-api
+  ports:
+    - name: http
+      port: 9014
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: magistrala-notifiers-ingress
+  namespace: magistrala
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - hub.greeniq.vn
+      secretName: hub-greeniq-vn-tls
+  rules:
+    - host: hub.greeniq.vn
+      http:
+        paths:
+          - path: /subscriptions(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: magistrala-notifiers-api
+                port:
+                  number: 9014
+

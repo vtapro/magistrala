@@ -1,0 +1,254 @@
+---
+# ============================================================
+# MQTT ADAPTER - Magistrala v0.19.1
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: magistrala-mqtt
+  namespace: magistrala
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: magistrala-mqtt
+  template:
+    metadata:
+      labels:
+        app: magistrala-mqtt
+    spec:
+      containers:
+        - name: mqtt
+          image: vtaboss/mqtt:v0.19.1
+          env:
+            - name: SMQ_MQTT_ADAPTER_LOG_LEVEL
+              value: "info"
+            - name: SMQ_MQTT_ADAPTER_HTTP_PORT
+              value: "8008"
+            - name: SMQ_MQTT_ADAPTER_MQTT_PORT
+              value: "1883"
+            - name: SMQ_MQTT_ADAPTER_MQTT_TARGET_HOST
+              value: "magistrala-rabbitmq"
+            - name: SMQ_MQTT_ADAPTER_MQTT_TARGET_PORT
+              value: "1883"
+            - name: SMQ_MQTT_ADAPTER_MQTT_TARGET_PROTOCOL
+              value: "mqtt"
+            - name: SMQ_MQTT_ADAPTER_MQTT_TARGET_USERNAME
+              value: "supermq"
+            - name: SMQ_MQTT_ADAPTER_MQTT_TARGET_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: magistrala-runtime-secrets
+                  key: magistrala-mqtt__SMQ_MQTT_ADAPTER_MQTT_TARGET_PASSWORD
+            - name: SMQ_MQTT_ADAPTER_WS_TARGET_HOST
+              value: "magistrala-rabbitmq"
+            - name: SMQ_MQTT_ADAPTER_WS_TARGET_PORT
+              value: "15675"
+            - name: SMQ_MQTT_ADAPTER_WS_TARGET_PATH
+              value: "/ws"
+            - name: SMQ_AUTH_GRPC_URL
+              value: "magistrala-auth:7001"
+            - name: SMQ_AUTH_GRPC_TIMEOUT
+              value: "300s"
+            - name: SMQ_CLIENTS_GRPC_URL
+              value: "magistrala-clients:7006"
+            - name: SMQ_CLIENTS_GRPC_TIMEOUT
+              value: "300s"
+            - name: SMQ_CHANNELS_GRPC_URL
+              value: "magistrala-channels:7005"
+            - name: SMQ_CHANNELS_GRPC_TIMEOUT
+              value: "300s"
+            - name: SMQ_DOMAINS_GRPC_URL
+              value: "magistrala-domains:7003"
+            - name: SMQ_AUTH_KEYS_ALGORITHM
+              value: "EdDSA"
+            - name: SMQ_MESSAGE_BROKER_URL
+              value: "nats://magistrala-nats.magistrala.svc.cluster.local:4222"
+            - name: SMQ_ES_URL
+              value: "nats://magistrala-nats.magistrala.svc.cluster.local:4222"
+          ports:
+            - containerPort: 8008
+              name: http
+            - containerPort: 1883
+              name: mqtt
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8008
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8008
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: magistrala-mqtt
+  namespace: magistrala
+spec:
+  selector:
+    app: magistrala-mqtt
+  ports:
+    - name: http
+      port: 8008
+      targetPort: 8008
+    - name: mqtt
+      port: 1883
+      targetPort: 1883
+
+---
+# ============================================================
+# HTTP ADAPTER
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: magistrala-http
+  namespace: magistrala
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: magistrala-http
+  template:
+    metadata:
+      labels:
+        app: magistrala-http
+    spec:
+      containers:
+        - name: http
+          image: magistrala/http:latest
+          env:
+            - name: MG_HTTP_ADAPTER_LOG_LEVEL
+              value: "info"
+            - name: MG_HTTP_ADAPTER_HOST
+              value: "0.0.0.0"
+            - name: MG_HTTP_ADAPTER_PORT
+              value: "8008"
+            - name: MG_NATS_URL
+              value: "nats://magistrala-nats:4222"
+            - name: MG_AUTH_GRPC_URL
+              value: "magistrala-auth:7001"
+            - name: MG_CLIENTS_GRPC_URL
+              value: "magistrala-clients:7006"
+            - name: MG_CHANNELS_GRPC_URL
+              value: "magistrala-channels:7005"
+          ports:
+            - containerPort: 8008
+              name: http
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8008
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8008
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: magistrala-http
+  namespace: magistrala
+spec:
+  selector:
+    app: magistrala-http
+  ports:
+    - name: http
+      port: 8008
+      targetPort: 8008
+
+---
+# ============================================================
+# WEBSOCKET ADAPTER
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: magistrala-ws
+  namespace: magistrala
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: magistrala-ws
+  template:
+    metadata:
+      labels:
+        app: magistrala-ws
+    spec:
+      containers:
+        - name: ws
+          image: magistrala/ws:latest
+          env:
+            - name: MG_WS_ADAPTER_LOG_LEVEL
+              value: "info"
+            - name: MG_WS_ADAPTER_HTTP_HOST
+              value: "0.0.0.0"
+            - name: MG_WS_ADAPTER_HTTP_PORT
+              value: "8190"
+            - name: MG_NATS_URL
+              value: "nats://magistrala-nats:4222"
+            - name: MG_AUTH_GRPC_URL
+              value: "magistrala-auth:7001"
+            - name: MG_CLIENTS_GRPC_URL
+              value: "magistrala-clients:7006"
+            - name: MG_CHANNELS_GRPC_URL
+              value: "magistrala-channels:7005"
+          ports:
+            - containerPort: 8190
+              name: http
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "300m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8190
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8190
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: magistrala-ws
+  namespace: magistrala
+spec:
+  selector:
+    app: magistrala-ws
+  ports:
+    - name: http
+      port: 8190
+      targetPort: 8190

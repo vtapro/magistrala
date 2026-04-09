@@ -27,5 +27,9 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=${GOARCH} GOARM=${GOARM} \
 FROM scratch
 # Certificates are needed so that mailing util can work.
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+# Runtime assets used by several services (notifications/reports/re/alarms).
+COPY --from=builder /go/src/github.com/absmach/magistrala/docker/templates /templates
+COPY --from=builder /go/src/github.com/absmach/magistrala/docker/templates /docker/templates
+COPY --from=builder /go/src/github.com/absmach/magistrala/docker/permission.yaml /permission.yaml
 COPY --from=builder /exe /
 ENTRYPOINT ["/exe"]
